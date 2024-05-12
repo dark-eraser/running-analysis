@@ -31,57 +31,6 @@ def analyze_gpx(file_path):
                 total_duration = (times[-1] - times[0]).total_seconds() / 3600  # Duration in hours
                 print(f'Total Duration: {total_duration:.2f} hours')
 
-def analyze_gpx_with_splits(file_path, split_distance=1000):
-    # Open and parse the GPX file
-    with open(file_path, 'r') as gpx_file:
-        gpx = gpxpy.parse(gpx_file)
-
-    # Process each track in the file
-    for track in gpx.tracks:
-        for segment in track.segments:
-            print(f'Track: {track.name}')
-            total_distance = 0
-            segment_start = segment.points[0]
-            split_distances = []
-            split_elevations = []
-            split_times = []
-
-            # Initialize current split data
-            current_split_distance = 0
-            current_split_elevation_gain = 0
-            current_split_start = segment.points[0]
-
-            for point_index in range(1, len(segment.points)):
-                # Calculate distance and elevation change
-                previous_point = segment.points[point_index - 1]
-                current_point = segment.points[point_index]
-                distance = previous_point.distance_3d(current_point)  # distance in meters
-                current_split_distance += distance
-
-                if current_point.elevation and previous_point.elevation:
-                    elevation_change = current_point.elevation - previous_point.elevation
-                    if elevation_change > 0:
-                        current_split_elevation_gain += elevation_change
-
-                # Check if split is complete
-                if current_split_distance >= split_distance:
-                    # Record split
-                    split_distances.append(current_split_distance)
-                    split_elevations.append(current_split_elevation_gain)
-                    if current_point.time and current_split_start.time:
-                        split_duration = (current_point.time - current_split_start.time).total_seconds()
-                        split_times.append(split_duration)
-                    
-                    # Reset for next split
-                    current_split_distance = 0
-                    current_split_elevation_gain = 0
-                    current_split_start = current_point
-
-            # Output split information
-            for i, split in enumerate(split_distances):
-                print(f'Split {i+1}: Distance = {split / 1000:.6f} km, Elevation Gain = {split_elevations[i]:.6f} m')
-                if split_times:
-                    print(f'         Time = {split_times[i]/3600:.6f} hours')
 def analyze_and_visualize_gpx(file_path, split_distance=1000):
     with open(file_path, 'r') as gpx_file:
         gpx = gpxpy.parse(gpx_file)
@@ -117,7 +66,11 @@ def analyze_and_visualize_gpx(file_path, split_distance=1000):
                     current_split_distance = 0
                     current_split_elevation_gain = 0
                     current_split_start = current_point
-
+                    
+            for i, split in enumerate(split_distances):
+                print(f'Split {i+1}: Distance = {split / 1000:.6f} km, Elevation Gain = {split_elevations[i]:.6f} m')
+                if split_times:
+                    print(f'         Time = {split_times[i]/3600:.6f} hours')
     # Visualizations
     fig, axs = plt.subplots(2, 1, figsize=(10, 15))
     
@@ -141,8 +94,7 @@ def analyze_and_visualize_gpx(file_path, split_distance=1000):
     plt.tight_layout()
     plt.show()
 
-data_file = 'data/gpx/route_2024-02-18_7.51am.gpx'
+data_file1 = 'data/gpx/route_2024-04-25_3.41pm.gpx'
 # Example usage
-analyze_gpx(data_file)
-analyze_gpx_with_splits(data_file, split_distance=1000)
-analyze_and_visualize_gpx(data_file, split_distance=1000)
+analyze_gpx(data_file1)
+analyze_and_visualize_gpx(data_file1, split_distance=1000)
